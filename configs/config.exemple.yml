@@ -1,0 +1,39 @@
+databases:
+  postgres:
+    enabled: true
+    host: localhost
+    port: 5432
+    user: postgres
+    password: postgres
+    database: postgres
+    sslmode: disable
+    max_connections: 25
+
+  oracle:
+    enabled: true
+    connection_string: "system/oracle@localhost:1521/XE"
+    max_connections: 25
+
+  surrealdb:
+    enabled: true
+    url: "ws://localhost:8000/rpc"
+    namespace: test
+    database: test
+    user: root
+    password: root
+
+comparison:
+  record_count: 100000
+  batch_size: 1000
+  random_reads: 10000
+  updates: 10000
+  transactions: 1000
+  concurrent_goroutines: 10
+
+output:
+  format:
+    - console
+    - csv
+    - json
+  directory: "./results"
+  filename_prefix: "dbcompare"
