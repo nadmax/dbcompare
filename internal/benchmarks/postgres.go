@@ -106,7 +106,11 @@ func (p *PostgresBenchmark) bulkInsert() (*models.BenchmarkResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			fmt.Printf("Warning: failed to rollback transition: %v\n", err)
+		}
+	}()
 
 	stmt, err := tx.Prepare(`
 		INSERT INTO benchmark_records (name, email, age, balance, created_at, description, is_active)
@@ -115,7 +119,11 @@ func (p *PostgresBenchmark) bulkInsert() (*models.BenchmarkResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer stmt.Close()
+	defer func() {
+		if err := stmt.Close(); err != nil {
+			fmt.Printf("Warning: failed to close statement: %v\n", err)
+		}
+	}()
 
 	errorCount := 0
 	batchSize := p.config.Benchmark.BatchSize
@@ -171,7 +179,11 @@ func (p *PostgresBenchmark) sequentialRead() (*models.BenchmarkResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			fmt.Printf("Warning: failed to close rows: %v\n", err)
+		}
+	}()
 
 	count := 0
 	errorCount := 0
@@ -221,7 +233,9 @@ func (p *PostgresBenchmark) indexedQuery() (*models.BenchmarkResult, error) {
 		if err != nil {
 			errorCount++
 		} else {
-			rows.Close()
+			if err := rows.Close(); err != nil {
+				fmt.Printf("Warning: failed to close rows: %v", err)
+			}
 		}
 		p.logProgress("Indexed Query", i+1, 1000)
 	}
@@ -273,7 +287,11 @@ func (p *PostgresBenchmark) complexQuery() (*models.BenchmarkResult, error) {
 	if err != nil {
 		errorCount = 1
 	} else {
-		defer rows.Close()
+		defer func() {
+			if err := rows.Close(); err != nil {
+				fmt.Printf("Warning: failed to close rows: %v", err)
+			}
+		}()
 		for rows.Next() {
 			var age, count int
 			var avg, max, min float64
@@ -384,14 +402,18 @@ func (p *PostgresBenchmark) transactionPerformance() (*models.BenchmarkResult, e
 
 		_, err = tx.Exec("UPDATE benchmark_records SET balance = balance - 10 WHERE id = $1", id1)
 		if err != nil {
-			tx.Rollback()
+			if txErr := tx.Rollback(); txErr != nil {
+				fmt.Printf("Warning: failed to rollback transition: %v\n", txErr)
+			}
 			errorCount++
 			continue
 		}
 
 		_, err = tx.Exec("UPDATE benchmark_records SET balance = balance + 10 WHERE id = $1", id2)
 		if err != nil {
-			tx.Rollback()
+			if txErr := tx.Rollback(); txErr != nil {
+				fmt.Printf("Warning: failed to rollback transition: %v\n", txErr)
+			}
 			errorCount++
 			continue
 		}

@@ -27,7 +27,11 @@ func (j *JSONReporter) Generate(suite *models.BenchmarkSuite) error {
 	if err != nil {
 		return fmt.Errorf("failed to create JSON file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("Warning: failed to close JSON file: %v\n", err)
+		}
+	}()
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")

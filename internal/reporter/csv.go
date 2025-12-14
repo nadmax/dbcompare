@@ -27,12 +27,15 @@ func (c *CSVReporter) Generate(suite *models.BenchmarkSuite) error {
 	if err != nil {
 		return fmt.Errorf("failed to create CSV file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("Warning: failed to close file: %v\n", err)
+		}
+	}()
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	// Write header
 	header := []string{
 		"Database",
 		"Operation",

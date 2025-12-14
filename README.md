@@ -1,3 +1,5 @@
+[CI](https://github.com/nadmax/dbcompare/actions/workflows/ci.yml/badge.svg)
+
 # DBCompare
 
 A comprehensive Go benchmarking suite comparing PostgreSQL and SurrealDB performance across various operations.
