@@ -9,11 +9,6 @@ databases:
     sslmode: disable
     max_connections: 25
 
-  oracle:
-    enabled: true
-    connection_string: "system/oracle@localhost:1521/XE"
-    max_connections: 25
-
   surrealdb:
     enabled: true
     url: "ws://localhost:8000/rpc"
