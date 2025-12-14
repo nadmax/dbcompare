@@ -99,10 +99,7 @@ func (s *SurrealDBBenchmark) bulkInsert() (*internalmodels.BenchmarkResult, erro
 	ctx := s.db.Context()
 
 	for i := 0; i < s.config.Benchmark.RecordCount; i += batchSize {
-		end := i + batchSize
-		if end > s.config.Benchmark.RecordCount {
-			end = s.config.Benchmark.RecordCount
-		}
+		end := min(i+batchSize, s.config.Benchmark.RecordCount)
 
 		for j := i; j < end; j++ {
 			record := s.gen.GenerateRecord(j + 1)
@@ -218,7 +215,6 @@ func (s *SurrealDBBenchmark) concurrentReads() (*internalmodels.BenchmarkResult,
 	result := internalmodels.NewBenchmarkResult("Concurrent Reads", s.name, totalReads)
 	ctx := s.db.Context()
 
-	// Get all records first
 	allRecords, err := surrealdb.Select[[]SurrealRecord](ctx, s.db.DB(), models.Table("test_records"))
 	if err != nil || len(*allRecords) == 0 {
 		result.Complete(1)
@@ -230,9 +226,7 @@ func (s *SurrealDBBenchmark) concurrentReads() (*internalmodels.BenchmarkResult,
 	errorCount := 0
 
 	for range goroutines {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for j := 0; j < readsPerGoroutine && j < len(*allRecords); j++ {
 				idx := s.gen.GenerateRandomID(len(*allRecords)) - 1
 				if idx >= 0 && idx < len(*allRecords) && (*allRecords)[idx].ID != nil {
@@ -242,7 +236,7 @@ func (s *SurrealDBBenchmark) concurrentReads() (*internalmodels.BenchmarkResult,
 					}
 				}
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

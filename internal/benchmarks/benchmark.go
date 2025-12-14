@@ -51,7 +51,7 @@ func NewRunner(cfg *config.Config) *Runner {
 func (r *Runner) Run(filter string) (*models.BenchmarkSuite, error) {
 	suite := &models.BenchmarkSuite{
 		Results: make([]models.BenchmarkResult, 0),
-		Config:  make(map[string]interface{}),
+		Config:  make(map[string]any),
 	}
 	suite.StartTime = time.Now()
 
