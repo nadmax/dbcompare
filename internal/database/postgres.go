@@ -25,7 +25,9 @@ func NewPostgresDB(cfg *config.PostgresConfig) (*PostgresDB, error) {
 	db.SetMaxIdleConns(cfg.MaxConnections / 5)
 
 	if err := db.Ping(); err != nil {
-		db.Close()
+		if closeErr := db.Close(); closeErr != nil {
+			return nil, fmt.Errorf("failed to ping database: %w (also failed to close: %v)", err, closeErr)
+		}
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
@@ -104,7 +106,11 @@ func (p *PostgresDB) GetStats() (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			fmt.Printf("Warning: failed to close rows: %v\n", err)
+		}
+	}()
 
 	indexes := make(map[string]string)
 	for rows.Next() {
