@@ -14,4 +14,4 @@ RUN mkdir -p /app/configs /app/results && \
     chown -R user:user /app
 USER user
 ENTRYPOINT ["/app/dbcompare"]
-CMD ["-config", "/app/configs/config.yaml"]
+CMD ["-config", "/app/configs/config.yml"]

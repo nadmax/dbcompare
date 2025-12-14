@@ -36,15 +36,6 @@ func NewRunner(cfg *config.Config) *Runner {
 		}
 	}
 
-	if cfg.Databases.Oracle.Enabled {
-		oracleDB, err := database.NewOracleDB(&cfg.Databases.Oracle)
-		if err != nil {
-			log.Printf("Warning: Failed to initialize Oracle: %v", err)
-		} else {
-			runner.benchmarks["oracle"] = NewOracleBenchmark(oracleDB, cfg)
-		}
-	}
-
 	if cfg.Databases.SurrealDB.Enabled {
 		surrealDB, err := database.NewSurrealDB(&cfg.Databases.SurrealDB)
 		if err != nil {

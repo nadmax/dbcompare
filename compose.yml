@@ -10,43 +10,25 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bench"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - dbcompare-network
-
-  oracle:
-    image: container-registry.oracle.com/database/express:21.3.0-xe
-    volumes:
-      - oracle_data:/opt/oracle/oradata
-    ports:
-      - "1521:1521"
-      - "5500:5500"
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "echo 'SELECT 1 FROM DUAL;' | sqlplus -s sys/OraclePassword123@localhost:1521/XE as sysdba",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
     networks:
       - dbcompare-network
 
   surrealdb:
     image: surrealdb/surrealdb:v2
-    command: start --log trace --user root --pass root memory
+    command: start --bind 0.0.0.0:8000 --log trace --user root --pass root memory
     ports:
       - "8000:8000"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test:
+        ["CMD", "/surreal", "is-ready", "--endpoint", "http://127.0.0.1:8000"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     networks:
       - dbcompare-network
 
@@ -54,14 +36,24 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["-config", "/app/configs/config.yaml"]
+    command: ["-config", "/app/configs/config.yml"]
+    environment:
+      - POSTGRES_HOST=dbcompare-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - SURREALDB_URL=ws://dbcompare-surrealdb:8000/rpc
+      - SURREALDB_USER=root
+      - SURREALDB_PASS=root
+      - SURREALDB_NS=test
+      - SURREALDB_DB=test
+      - CONFIG_PATH=/app/configs/config.yml
     volumes:
       - ./configs:/app/configs:ro
       - ./results:/app/results
     depends_on:
       postgres:
-        condition: service_healthy
-      oracle:
         condition: service_healthy
       surrealdb:
         condition: service_healthy
@@ -70,8 +62,8 @@ services:
 
 volumes:
   postgres_data:
-  oracle_data:
 
 networks:
   dbcompare-network:
+    name: dbcompare-network
     driver: bridge

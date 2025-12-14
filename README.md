@@ -1,6 +1,6 @@
 # DBCompare
 
-A comprehensive Go benchmarking suite comparing PostgreSQL, Oracle, and SurrealDB performance across various operations.
+A comprehensive Go benchmarking suite comparing PostgreSQL and SurrealDB performance across various operations.
 
 ## Quick Start
 
@@ -8,7 +8,7 @@ A comprehensive Go benchmarking suite comparing PostgreSQL, Oracle, and SurrealD
 
 ```sh
 # 1. Clone the repository
-git clone https://github.com/yourusername/dbcompare.git
+git clone https://github.com/nadmax/dbcompare.git
 cd dbcompare
 
 # 2. Create Docker config
@@ -23,7 +23,7 @@ make docker-run
 
 ```sh
 # 1. Clone and setup
-git clone https://github.com/yourusername/dbcompare.git
+git clone https://github.com/nadmax/dbcompare.git
 cd dbcompare
 go mod download
 
@@ -32,28 +32,27 @@ make docker-up-db
 
 # 3. Configure
 cp configs/config.example.yml configs/config.yml
-# Edit configs/config.yaml with your database connections
+# Edit configs/config.yml with your database connections
 
 # 4. Run comparisons locally
 make run
 
 # Or run specific database
 make run-postgres
-make run-oracle
 make run-surrealdb
 ```
 
 ### Option 3: Fully Local (No Docker)
 
 ```sh
-# 1. Install PostgreSQL, Oracle, and SurrealDB locally
-# 2. Configure connection strings in configs/config.yaml
+# 1. Install PostgreSQL, and SurrealDB locally
+# 2. Configure connection strings in configs/config.yml
 # 3. Run: make run
 ```
 
 ## Configuration
 
-Example `configs/config.yaml`:
+Example `configs/config.yml`:
 
 ```yaml
 databases:
@@ -65,11 +64,6 @@ databases:
     password: postgres
     database: postgres
     sslmode: disable
-    max_connections: 25
-
-  oracle:
-    enabled: true
-    connection_string: "system/oracle@localhost:1521/XE"
     max_connections: 25
 
   surrealdb:
@@ -162,23 +156,7 @@ make docker-logs           # View all logs
 
 - Go 1.25.3
 - PostgreSQL 18
-- Oracle Database 26ai
-- SurrealDB 2.0
-
-## Docker Support
-
-The project includes Docker Compose setup for all databases:
-
-```sh
-# Start all services
-make docker-up
-
-# Stop all services
-make docker-down
-
-# View logs
-make docker-logs
-```
+- SurrealDB v2
 
 ## License
 
