@@ -77,8 +77,8 @@ func (p *PostgresDB) TruncateTable() error {
 	return err
 }
 
-func (p *PostgresDB) GetStats() (map[string]interface{}, error) {
-	stats := make(map[string]interface{})
+func (p *PostgresDB) GetStats() (map[string]any, error) {
+	stats := make(map[string]any)
 
 	var count int64
 	err := p.db.QueryRow("SELECT COUNT(*) FROM benchmark_records").Scan(&count)

@@ -195,7 +195,7 @@ func (p *PostgresBenchmark) randomRead() (*models.BenchmarkResult, error) {
 	result := models.NewBenchmarkResult("Random Read", p.name, count)
 
 	errorCount := 0
-	for i := 0; i < count; i++ {
+	for i := range count {
 		id := p.gen.GenerateRandomID(p.config.Benchmark.RecordCount)
 		var r models.TestRecord
 		err := p.db.DB().QueryRow("SELECT * FROM benchmark_records WHERE id = $1", id).
@@ -215,7 +215,7 @@ func (p *PostgresBenchmark) indexedQuery() (*models.BenchmarkResult, error) {
 	result := models.NewBenchmarkResult("Indexed Query", p.name, 1000)
 
 	errorCount := 0
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		age := 20 + (i % 50)
 		rows, err := p.db.DB().Query("SELECT * FROM benchmark_records WHERE age = $1 LIMIT 10", age)
 		if err != nil {
@@ -236,7 +236,7 @@ func (p *PostgresBenchmark) updateOperations() (*models.BenchmarkResult, error) 
 	result := models.NewBenchmarkResult("Update Operations", p.name, count)
 
 	errorCount := 0
-	for i := 0; i < count; i++ {
+	for i := range count {
 		id := p.gen.GenerateRandomID(p.config.Benchmark.RecordCount)
 		newBalance := p.gen.GenerateUpdateValue("balance").(float64)
 		_, err := p.db.DB().Exec("UPDATE benchmark_records SET balance = $1 WHERE id = $2", newBalance, id)
@@ -299,11 +299,11 @@ func (p *PostgresBenchmark) concurrentReads() (*models.BenchmarkResult, error) {
 	errorChan := make(chan error, goroutines)
 	errorCount := 0
 
-	for i := 0; i < goroutines; i++ {
+	for i := range goroutines {
 		wg.Add(1)
 		go func(routineID int) {
 			defer wg.Done()
-			for j := 0; j < readsPerGoroutine; j++ {
+			for range readsPerGoroutine {
 				id := p.gen.GenerateRandomID(p.config.Benchmark.RecordCount)
 				var r models.TestRecord
 				err := p.db.DB().QueryRow("SELECT * FROM benchmark_records WHERE id = $1", id).
@@ -338,11 +338,11 @@ func (p *PostgresBenchmark) concurrentWrites() (*models.BenchmarkResult, error) 
 	errorChan := make(chan error, goroutines)
 	errorCount := 0
 
-	for i := 0; i < goroutines; i++ {
+	for i := range goroutines {
 		wg.Add(1)
 		go func(routineID int) {
 			defer wg.Done()
-			for j := 0; j < writesPerGoroutine; j++ {
+			for j := range writesPerGoroutine {
 				record := p.gen.GenerateRecord(200000 + routineID*writesPerGoroutine + j)
 				_, err := p.db.DB().Exec(`
 					INSERT INTO benchmark_records (name, email, age, balance, created_at, description, is_active)
@@ -372,7 +372,7 @@ func (p *PostgresBenchmark) transactionPerformance() (*models.BenchmarkResult, e
 	result := models.NewBenchmarkResult("Transaction Performance", p.name, count)
 
 	errorCount := 0
-	for i := 0; i < count; i++ {
+	for i := range count {
 		tx, err := p.db.DB().Begin()
 		if err != nil {
 			errorCount++
